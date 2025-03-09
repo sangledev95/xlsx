@@ -1,16 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -20,18 +11,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DialogClose } from "@radix-ui/react-dialog";
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
+import { DataTableDemo } from "./_components/data-table";
+import DialogNewRow from "./_components/dialog-new-row";
+import DialogUploadTemplateFiles from "./_components/dialog-upload-template-file";
 
 export default function Home() {
   const [data, setData] = useState<any>([]);
   const [totalRow, setTotalRow] = useState<number>(0);
+  const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
+  const [fileName, setFileName] = useState<string>("");
 
   const handleFileUpload = (e: any) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setFileName(file.name);
     const reader = new FileReader();
-    reader.readAsBinaryString(e.target.files[0]);
     reader.onload = (e) => {
       const data = e.target?.result;
       const workbook = XLSX.read(data, { type: "binary" });
@@ -43,48 +41,71 @@ export default function Home() {
 
       setData(parsedData);
       setTotalRow(parsedData.length);
+      setWorkbook(workbook);
     };
+    reader.readAsBinaryString(file);
+  };
+
+  // const onSaveDataExcel = (model: any) => {
+  //   if (!workbook) {
+  //     alert("⚠️ Chưa có file để ghi!");
+  //     return;
+  //   }
+
+  //   console.log("model ", model, [...data, model]);
+
+  //   const sheetName = workbook.SheetNames[0];
+  //   const ws = XLSX.utils.json_to_sheet([...data, model]);
+  //   workbook.Sheets[sheetName] = ws;
+  // };
+
+  const saveToServer = async (model: any) => {
+    if (!workbook) {
+      alert("⚠️ Chưa có file để ghi!");
+      return;
+    }
+
+    // Cập nhật dữ liệu vào workbook
+    const sheetName = workbook.SheetNames[0];
+    const ws = XLSX.utils.json_to_sheet([...data, model]);
+    workbook.Sheets[sheetName] = ws;
+
+    // Tạo file Excel từ workbook
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    // Gửi file lên server
+    const formData = new FormData();
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    formData.append("file", blob, fileName);
+
+    try {
+      const response = await fetch("/api/save-excel", {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        alert("✅ File đã được ghi đè thành công!");
+      } else {
+        alert("❌ Lỗi khi lưu file!");
+      }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("❌ Lỗi khi lưu file!");
+    }
   };
 
   return (
     <div className="space-y-4 p-4">
-      <div>
+      <div className="flex gap-80">
         <Input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <DialogUploadTemplateFiles />
       </div>
 
       {data.length > 0 && (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Plus />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="min-w-[800px] max-h-10/12 flex flex-col">
-            <DialogHeader className=" ">
-              <DialogTitle>Thêm mới</DialogTitle>
-              <DialogDescription>
-                Điền dữ liệu rồi save để lưu vào file excel.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="overflow-auto py-2 space-y-4">
-              {Object.keys(data[1]).map((key) => (
-                <div className="flex flex-col items-center space-y-2" key={key}>
-                  <div className="w-full">
-                    <Label htmlFor={key}>{data[1][key]}</Label>
-                  </div>
-                  <div className="w-full">
-                    <Input id={key} type="text" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <DialogFooter className=" ">
-              <Button variant="destructive" className="cursor-pointer">
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
       )}
 
       {data.length > 0 && (
@@ -93,8 +114,8 @@ export default function Home() {
             <TableCaption>A list of your recent invoices.</TableCaption>
             <TableHeader>
               <TableRow>
-                {Object.keys(data[1]).map((key) => (
-                  <TableHead key={key}>{data[1][key]}</TableHead>
+                {Object.keys(data[0]).map((key) => (
+                  <TableHead key={key}>{data[0][key]}</TableHead>
                 ))}
               </TableRow>
             </TableHeader>
@@ -110,6 +131,8 @@ export default function Home() {
           </Table>
         </div>
       )}
+
+      <DataTableDemo />
     </div>
   );
 }

@@ -124,3 +124,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.no-scroll-bar::-webkit-scrollbar {
+  display: none; /* Ẩn scrollbar trên Chrome, Safari */
+  scrollbar-width: none;
+}
