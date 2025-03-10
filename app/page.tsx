@@ -33,6 +33,7 @@ export default function Home() {
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const setLoadingGlobal = useLoadingGlobalStore((state) => state.setLoading);
+  const [rowSelection, setRowSelection] = useState({});
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoadingGlobal(true);
@@ -75,9 +76,15 @@ export default function Home() {
             table.getIsAllPageRowsSelected() ||
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
-          onCheckedChange={(value: boolean) =>
-            table.toggleAllPageRowsSelected(!!value)
-          }
+          onCheckedChange={(value: boolean) => {
+            console.log(
+              "Value ",
+              value,
+              table.toggleAllPageRowsSelected(!!value)
+            );
+            console.log("Value 111 ", table.getIsAllPageRowsSelected());
+            // return table.toggleAllPageRowsSelected(!!value);
+          }}
           aria-label="Select all"
         />
       ),
@@ -197,6 +204,46 @@ export default function Home() {
     }
   };
 
+  const exportData = async (fileName: string) => {
+    try {
+      console.log("aaaaaaaaaaaaaa ", rowSelection, fileName);
+      const keys = Object.keys(rowSelection);
+      let dataExport: Record<string, string>[] = [];
+      if (keys.length > 0) {
+        keys.forEach((k) => {
+          dataExport.push(data[parseInt(k)]);
+        });
+      } else {
+        dataExport = [...data];
+      }
+
+      console.log("dataExport === ", dataExport);
+
+      const response = await fetch("/api/export-zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dataExport,
+          fileName,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Lỗi khi tải file!");
+
+      // **Tạo link để tải file**
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "exported-files.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error("Lỗi khi tải file ZIP:", error);
+    }
+  };
+
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-center relative py-4">
@@ -223,11 +270,18 @@ export default function Home() {
       {data.length > 0 && (
         <div>
           <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
-          <ButtonExport className="mx-4" />
+          <ButtonExport className="mx-4" exportData={exportData} />
         </div>
       )}
 
-      {data && <DataTableDemo data={data} columns={getColsFormData()} />}
+      {data && (
+        <DataTableDemo
+          data={data}
+          columns={getColsFormData()}
+          rowSelection={rowSelection}
+          setRowSelection={setRowSelection}
+        />
+      )}
     </div>
   );
 }

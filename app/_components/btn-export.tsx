@@ -15,9 +15,13 @@ import { useEffect, useState } from "react";
 
 type ButtonExportProps = {
   className?: string;
+  exportData: (fileName: string) => void;
 };
 
-const ButtonExport: React.FC<ButtonExportProps> = ({ className }) => {
+const ButtonExport: React.FC<ButtonExportProps> = ({
+  className,
+  exportData,
+}) => {
   const [fileNameDocx, setFileNameDocx] = useState<string>("");
   const [fileNameXlsx, setFileNameXlsx] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
@@ -35,6 +39,15 @@ const ButtonExport: React.FC<ButtonExportProps> = ({ className }) => {
     if (filename.includes("xlsx")) setFileNameXlsx("excel-template.xlsx");
 
     setLoading(false);
+  };
+
+  const handleExport = (extension: string) => () => {
+    let fileName = "";
+
+    if (extension.includes("docx")) fileName = "docx-template.docx";
+    if (extension.includes("xlsx")) fileName = "excel-template.xlsx";
+
+    exportData(fileName);
   };
 
   useEffect(() => {
@@ -61,13 +74,13 @@ const ButtonExport: React.FC<ButtonExportProps> = ({ className }) => {
         ) : (
           <DropdownMenuGroup>
             {fileNameDocx && (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExport("docx")}>
                 <FileText /> docx-template.docx
                 <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
               </DropdownMenuItem>
             )}
             {fileNameXlsx && (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExport("xlsx")}>
                 <Sheet /> excel-template.xlsx
                 <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
               </DropdownMenuItem>

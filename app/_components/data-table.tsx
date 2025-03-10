@@ -35,9 +35,15 @@ import {
 export function DataTableDemo({
   data,
   columns,
+  rowSelection,
+  setRowSelection,
 }: {
   data: Record<string, string>[];
   columns: ColumnDef<Record<string, string>>[];
+  rowSelection: Record<string, boolean>;
+  setRowSelection: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -45,7 +51,6 @@ export function DataTableDemo({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -68,11 +73,13 @@ export function DataTableDemo({
 
   if (!data || !columns || !data.length || !columns.length) return;
 
+  console.log("rowSelection === ", table.getState());
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter emails..."
+          placeholder="Tìm kiếm"
           // value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           // onChange={(event) =>
           //   table.getColumn("email")?.setFilterValue(event.target.value)
