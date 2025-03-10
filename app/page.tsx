@@ -14,10 +14,21 @@ import * as XLSX from "xlsx";
 import { DataTableDemo } from "./_components/data-table";
 import DialogNewRow from "./_components/dialog-new-row";
 import DialogUploadTemplateFiles from "./_components/dialog-upload-template-file";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ColumnDef } from "@tanstack/react-table";
 
 export default function Home() {
-  const [data, setData] = useState<unknown[]>([]);
-  // const [setTotalRow] = useState<number>(0);
+  const [data, setData] = useState<Record<string, string>[]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [fileName, setFileName] = useState<string>("");
 
@@ -39,11 +50,95 @@ export default function Home() {
 
       console.log("adasd ", parsedData);
 
-      setData(parsedData);
-      // setTotalRow(parsedData.length);
+      setData(parsedData as Record<string, string>[]);
       setWorkbook(workbook);
     };
     reader.readAsBinaryString(file);
+  };
+
+  const getColsFormData = (): ColumnDef<Record<string, string>>[] => {
+    if (!data || !data.length || typeof data[0] !== "object") return [];
+
+    const cols: ColumnDef<Record<string, string>>[] = [];
+
+    // Checkbox
+    cols.push({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value: boolean) =>
+            table.toggleAllPageRowsSelected(!!value)
+          }
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    });
+    // Add header
+    const keys = Object.keys(data[0] as Record<string, string>);
+
+    keys.forEach((k) => {
+      cols.push({
+        accessorKey: k,
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }>
+              {k}
+              <ArrowUpDown />
+            </Button>
+          );
+        },
+      });
+    });
+
+    // Add action
+    cols.push({
+      id: "actions",
+      enableHiding: false,
+      header: () => <div className="">Action</div>,
+      cell: ({ row }) => {
+        const payment = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(payment.id)}>
+                Copy payment ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>View customer</DropdownMenuItem>
+              <DropdownMenuItem>View payment details</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    });
+
+    return cols;
   };
 
   // const onSaveDataExcel = (model: any) => {
@@ -108,41 +203,7 @@ export default function Home() {
         <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
       )}
 
-      {data.length > 0 && (
-        <div className="">
-          <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                {Array.isArray(data) &&
-                  data.length > 0 &&
-                  typeof data[0] === "object" &&
-                  data[0] !== null &&
-                  Object.keys(data[0]).map((key) => (
-                    <TableHead key={key}>
-                      {String((data[0] as Record<string, unknown>)[key])}
-                    </TableHead>
-                  ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((row: unknown, index: number) => (
-                <TableRow key={index}>
-                  {typeof row === "object" &&
-                    row !== null &&
-                    Object.values(row).map((value: unknown, index) => (
-                      <TableCell key={index}>
-                        {value as React.ReactNode}
-                      </TableCell>
-                    ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      <DataTableDemo />
+      {data && <DataTableDemo data={data} columns={getColsFormData()} />}
     </div>
   );
 }
