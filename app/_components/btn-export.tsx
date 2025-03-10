@@ -50,16 +50,28 @@ const ButtonExport: React.FC<ButtonExportProps> = ({
     exportData(fileName);
   };
 
-  useEffect(() => {
+  const handleCheckFileExist = () => {
+    if (fileNameDocx || fileNameXlsx) return;
+
+    console.log("zzzzzzzzz");
+
     ["docx-template.docx", "excel-template.xlsx"].forEach((f) => {
       checkFileExist(f);
     });
+  };
+
+  useEffect(() => {
+    handleCheckFileExist();
   }, []);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className={className}>
+        <Button
+          variant="outline"
+          className={className}
+          onClick={handleCheckFileExist}
+        >
           <FileDown /> Xuất dữ liệu
         </Button>
       </DropdownMenuTrigger>
@@ -83,6 +95,12 @@ const ButtonExport: React.FC<ButtonExportProps> = ({
               <DropdownMenuItem onClick={handleExport("xlsx")}>
                 <Sheet /> excel-template.xlsx
                 <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            )}
+
+            {!fileNameXlsx && !fileNameDocx && (
+              <DropdownMenuItem className="text-center">
+                <Label className="text-red-500 ">Không có file mẫu</Label>
               </DropdownMenuItem>
             )}
           </DropdownMenuGroup>

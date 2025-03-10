@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { FileUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -110,7 +111,10 @@ export default function DialogUploadTemplateFiles({}) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="destructive">Upload file mẫu</Button>
+        <Button variant="destructive">
+          <FileUp />
+          Upload file mẫu
+        </Button>
       </DialogTrigger>
       <DialogContent className="flex flex-col">
         <DialogHeader className=" ">
@@ -129,7 +133,8 @@ export default function DialogUploadTemplateFiles({}) {
             <Button
               className="cursor-pointer"
               variant="outline"
-              onClick={handleClickUploadFile("docx")}>
+              onClick={handleClickUploadFile("docx")}
+            >
               Upload template docx
             </Button>
             <Label
@@ -137,7 +142,8 @@ export default function DialogUploadTemplateFiles({}) {
                 fileNameDocx ? "text-blue-500 cursor-pointer underline" : ""
               }
               title={fileNameDocx ? "Click to download" : ""}
-              onClick={handleDownload("docx-template.docx")}>
+              onClick={handleDownload("docx-template.docx")}
+            >
               {fileNameDocx || "Empty"}
             </Label>
           </div>
@@ -152,7 +158,8 @@ export default function DialogUploadTemplateFiles({}) {
             <Button
               className="cursor-pointer"
               variant="outline"
-              onClick={handleClickUploadFile("xlsx")}>
+              onClick={handleClickUploadFile("xlsx")}
+            >
               Upload template excel
             </Button>
             <Label
@@ -160,7 +167,8 @@ export default function DialogUploadTemplateFiles({}) {
                 fileNameXlsx ? "text-blue-500 cursor-pointer underline" : ""
               }
               title={fileNameDocx ? "Click to download" : ""}
-              onClick={handleDownload("excel-template.xlsx")}>
+              onClick={handleDownload("excel-template.xlsx")}
+            >
               {fileNameXlsx || "Empty"}
             </Label>
           </div>

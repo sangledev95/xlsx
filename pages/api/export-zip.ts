@@ -4,6 +4,48 @@ import archiver from "archiver";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as XLSX from "xlsx";
 
+const outputDir = path.join(process.cwd(), "public/exports");
+
+const exportExcelFiles = (
+  newFileName: string,
+  dataExport: Record<string, string>[],
+  index: number
+): string => {
+  const filePath = path.join(
+    process.cwd(),
+    "public/uploads/excel-template.xlsx"
+  );
+  const fileBuffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+  if (!dataExport || !dataExport.length || !newFileName) {
+    return "";
+  }
+
+  const keysData = Object.keys(dataExport[0]);
+  const data = dataExport[index];
+
+  for (const cell in worksheet) {
+    if (worksheet[cell].v && typeof worksheet[cell].v === "string") {
+      let cellValue = worksheet[cell].v;
+
+      keysData.forEach((value, index) => {
+        const placeholder = `{${index}}`;
+        if (cellValue.includes(placeholder)) {
+          cellValue = cellValue.replace(placeholder, data[value]);
+        }
+      });
+      worksheet[cell].v = cellValue;
+    }
+  }
+
+  const outputPath = path.join(outputDir, newFileName);
+  XLSX.writeFile(workbook, outputPath);
+
+  return outputPath;
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -19,27 +61,20 @@ export default async function handler(
 
     const { fileName, dataExport } = data;
 
-    console.log("aaaaaaaaaaa 1123 ", dataExport, fileName);
+    if (!dataExport || !dataExport.length || !fileName) {
+      res.status(404).json({ message: "Not found data" });
+    }
 
-    return res.status(404).json({ message: "Not found data" });
-
-    const outputDir = path.join(process.cwd(), "public/exports");
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // **Tạo danh sách file**
     const filePaths: string[] = [];
     for (let i = 0; i < dataExport.length; i++) {
-      const fileName = `export-${i + 1}.xlsx`;
-      const filePath = path.join(outputDir, fileName);
-      filePaths.push(filePath);
+      const newFileName = `${fileName.replace("xlsx", "")}-${i + 1}.xlsx`;
+      const outputDir = exportExcelFiles(newFileName, dataExport, i);
 
-      // **Tạo file Excel từ data**
-      const ws = XLSX.utils.json_to_sheet(dataExport[i]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-      XLSX.writeFile(wb, filePath);
+      filePaths.push(outputDir);
     }
 
     // **Tạo file ZIP**

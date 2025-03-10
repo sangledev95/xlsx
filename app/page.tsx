@@ -110,7 +110,8 @@ export default function Home() {
               variant="ghost"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
-              }>
+              }
+            >
               {k} - {`{${index}}`}
               <ArrowUpDown />
             </Button>
@@ -138,7 +139,8 @@ export default function Home() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}>
+                onClick={() => navigator.clipboard.writeText(payment.id)}
+              >
                 Copy payment ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
