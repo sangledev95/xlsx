@@ -1,14 +1,5 @@
 "use client";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { DataTableDemo } from "./_components/data-table";
@@ -201,6 +192,7 @@ export default function Home() {
 
       {data.length > 0 && (
         <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
+        
       )}
 
       {data && <DataTableDemo data={data} columns={getColsFormData()} />}

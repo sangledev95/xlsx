@@ -36,7 +36,7 @@ export default function DialogNewRow({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
-          <Plus />
+          <Plus /> 
         </Button>
       </DialogTrigger>
       <DialogContent className="min-w-[800px] max-h-10/12 flex flex-col">
