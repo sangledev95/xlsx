@@ -35,8 +35,8 @@ export default function DialogNewRow({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Plus /> 
+        <Button variant="outline">
+          <Plus /> Thêm mới dữ liệu
         </Button>
       </DialogTrigger>
       <DialogContent className="min-w-[800px] max-h-10/12 flex flex-col">

@@ -14,16 +14,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, CircleHelp, MoreHorizontal } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
+import ButtonExport from "./_components/btn-export";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useLoadingGlobalStore } from "@/store/loadingGlobalStore";
+import { sleepAsync } from "@/utils/sleep";
 
 export default function Home() {
   const [data, setData] = useState<Record<string, string>[]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const setLoadingGlobal = useLoadingGlobalStore((state) => state.setLoading);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoadingGlobal(true);
     e.preventDefault();
 
     const file = e.target.files?.[0];
@@ -32,17 +44,19 @@ export default function Home() {
 
     setFileName(file.name);
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const data = e.target?.result;
       const workbook = XLSX.read(data, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const parsedData = XLSX.utils.sheet_to_json(sheet);
 
-      console.log("adasd ", parsedData);
+      await sleepAsync(500);
 
       setData(parsedData as Record<string, string>[]);
       setWorkbook(workbook);
+
+      setLoadingGlobal(false);
     };
     reader.readAsBinaryString(file);
   };
@@ -80,7 +94,7 @@ export default function Home() {
     // Add header
     const keys = Object.keys(data[0] as Record<string, string>);
 
-    keys.forEach((k) => {
+    keys.forEach((k, index: number) => {
       cols.push({
         accessorKey: k,
         header: ({ column }) => {
@@ -90,7 +104,7 @@ export default function Home() {
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }>
-              {k}
+              {k} - {`{${index}}`}
               <ArrowUpDown />
             </Button>
           );
@@ -185,14 +199,32 @@ export default function Home() {
 
   return (
     <div className="space-y-4 p-4">
+      <div className="flex justify-center relative py-4">
+        <Label className="text-4xl">Phần mềm xuất file hàng loạt</Label>
+        <div className="absolute cursor-pointer right-0 top-0">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CircleHelp />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Click để xem Hướng dẫn sử dụng</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
       <div className="flex gap-80">
         <Input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
         <DialogUploadTemplateFiles />
       </div>
 
       {data.length > 0 && (
-        <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
-        
+        <div>
+          <DialogNewRow data={data} onSaveDataExcel={saveToServer} />
+          <ButtonExport className="mx-4" />
+        </div>
       )}
 
       {data && <DataTableDemo data={data} columns={getColsFormData()} />}
