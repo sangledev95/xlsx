@@ -1,6 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -11,20 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { DataTableDemo } from "./_components/data-table";
 import DialogNewRow from "./_components/dialog-new-row";
 import DialogUploadTemplateFiles from "./_components/dialog-upload-template-file";
 
 export default function Home() {
-  const [data, setData] = useState<any>([]);
-  const [totalRow, setTotalRow] = useState<number>(0);
+  const [data, setData] = useState<unknown[]>([]);
+  // const [setTotalRow] = useState<number>(0);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [fileName, setFileName] = useState<string>("");
 
-  const handleFileUpload = (e: any) => {
-    const file = e.target.files[0];
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
@@ -40,7 +40,7 @@ export default function Home() {
       console.log("adasd ", parsedData);
 
       setData(parsedData);
-      setTotalRow(parsedData.length);
+      // setTotalRow(parsedData.length);
       setWorkbook(workbook);
     };
     reader.readAsBinaryString(file);
@@ -59,7 +59,7 @@ export default function Home() {
   //   workbook.Sheets[sheetName] = ws;
   // };
 
-  const saveToServer = async (model: any) => {
+  const saveToServer = async (model: { [key: string]: string }) => {
     if (!workbook) {
       alert("⚠️ Chưa có file để ghi!");
       return;
@@ -114,17 +114,27 @@ export default function Home() {
             <TableCaption>A list of your recent invoices.</TableCaption>
             <TableHeader>
               <TableRow>
-                {Object.keys(data[0]).map((key) => (
-                  <TableHead key={key}>{data[0][key]}</TableHead>
-                ))}
+                {Array.isArray(data) &&
+                  data.length > 0 &&
+                  typeof data[0] === "object" &&
+                  data[0] !== null &&
+                  Object.keys(data[0]).map((key) => (
+                    <TableHead key={key}>
+                      {String((data[0] as Record<string, unknown>)[key])}
+                    </TableHead>
+                  ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((row: any, index: number) => (
+              {data.map((row: unknown, index: number) => (
                 <TableRow key={index}>
-                  {Object.values(row).map((value: any, index) => (
-                    <TableCell key={index}>{value}</TableCell>
-                  ))}
+                  {typeof row === "object" &&
+                    row !== null &&
+                    Object.values(row).map((value: unknown, index) => (
+                      <TableCell key={index}>
+                        {value as React.ReactNode}
+                      </TableCell>
+                    ))}
                 </TableRow>
               ))}
             </TableBody>

@@ -17,10 +17,10 @@ export default function DialogNewRow({
   data,
   onSaveDataExcel,
 }: {
-  data: any;
-  onSaveDataExcel: Function;
+  data: unknown;
+  onSaveDataExcel: (model: { [key: string]: string }) => void;
 }) {
-  const [model, setModel] = useState<{ [key: string]: any }>({});
+  const [model, setModel] = useState<{ [key: string]: string }>({});
 
   const handleChange = (key: string, value: string) => {
     setModel((prev) => ({ ...prev, [key]: value }));
@@ -29,6 +29,8 @@ export default function DialogNewRow({
   const handleSubmit = () => {
     onSaveDataExcel(model);
   };
+
+  if (!Array.isArray(data)) return;
 
   return (
     <Dialog>
@@ -65,8 +67,7 @@ export default function DialogNewRow({
           <Button
             variant="destructive"
             className="cursor-pointer"
-            onClick={handleSubmit}
-          >
+            onClick={handleSubmit}>
             Save
           </Button>
         </DialogFooter>

@@ -1,6 +1,7 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
-import { IncomingForm } from "formidable";
+import { IncomingForm, Fields, Files } from "formidable";
 import * as XLSX from "xlsx";
 
 export const config = {
@@ -9,31 +10,34 @@ export const config = {
   },
 };
 
-export default async function handler(req: any, res: any) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Chỉ hỗ trợ phương thức POST" });
   }
 
-  const form = new IncomingForm();
   const uploadDir = path.join(process.cwd(), "public/uploads");
+  const form = new IncomingForm({
+    uploadDir, // Thiết lập thư mục upload
+    keepExtensions: true, // Giữ nguyên phần mở rộng của file
+    multiples: false, // Không cho phép upload nhiều file
+  });
 
   // Tạo thư mục upload nếu chưa tồn tại
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  form.uploadDir = uploadDir; // Thiết lập thư mục lưu file
-  form.keepExtensions = true; // Giữ nguyên phần mở rộng của file
-
-  form.parse(req, (err: any, fields: any, files: any) => {
+  form.parse(req, (err: Error, fields: Fields, files: Files) => {
     if (err) {
       return res.status(500).json({ message: "Lỗi khi tải file lên" });
     }
 
     const file = files.file;
-    console.log("fileeeeeee ", file.data);
-    const newData = JSON.parse(fields.data as string);
-    const filePath = file.filepath;
+    const newData = Array.isArray(fields.data) ? fields.data : [];
+    const filePath = Array.isArray(file) ? file[0].filepath : "";
 
     // Đọc file Excel cũ
     const workbook = XLSX.readFile(filePath);

@@ -85,7 +85,7 @@ export const columns: ColumnDef<Payment>[] = [
           table.getIsAllPageRowsSelected() ||
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
-        onCheckedChange={(value: any) =>
+        onCheckedChange={(value: boolean) =>
           table.toggleAllPageRowsSelected(!!value)
         }
         aria-label="Select all"
@@ -94,7 +94,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value: any) => row.toggleSelected(!!value)}
+        onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
         aria-label="Select row"
       />
     ),
@@ -107,8 +107,7 @@ export const columns: ColumnDef<Payment>[] = [
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Status
           <ArrowUpDown />
         </Button>
@@ -124,8 +123,7 @@ export const columns: ColumnDef<Payment>[] = [
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Email
           <ArrowUpDown />
         </Button>
@@ -165,8 +163,7 @@ export const columns: ColumnDef<Payment>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
+              onClick={() => navigator.clipboard.writeText(payment.id)}>
               Copy payment ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -234,10 +231,9 @@ export function DataTableDemo() {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value: any) =>
+                    onCheckedChange={(value: boolean) =>
                       column.toggleVisibility(!!value)
-                    }
-                  >
+                    }>
                     {column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -270,8 +266,7 @@ export function DataTableDemo() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                  data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -286,8 +281,7 @@ export function DataTableDemo() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                  className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -305,16 +299,14 @@ export function DataTableDemo() {
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+            disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+            disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>
