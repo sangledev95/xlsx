@@ -27,13 +27,14 @@ import {
 } from "@/components/ui/tooltip";
 import { useLoadingGlobalStore } from "@/store/loadingGlobalStore";
 import { sleepAsync } from "@/utils/sleep";
+import Image from "next/image";
 
 export default function Home() {
   const [data, setData] = useState<Record<string, string>[]>([]);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [fileName, setFileName] = useState<string>("");
-  const setLoadingGlobal = useLoadingGlobalStore((state) => state.setLoading);
   const [rowSelection, setRowSelection] = useState({});
+  const setLoadingGlobal = useLoadingGlobalStore((state) => state.setLoading);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoadingGlobal(true);
@@ -110,8 +111,7 @@ export default function Home() {
               variant="ghost"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
+              }>
               {k} - {`{${index}}`}
               <ArrowUpDown />
             </Button>
@@ -139,8 +139,7 @@ export default function Home() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}
-              >
+                onClick={() => navigator.clipboard.writeText(payment.id)}>
                 Copy payment ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -208,6 +207,7 @@ export default function Home() {
 
   const exportData = async (fileName: string) => {
     try {
+      setLoadingGlobal(true);
       console.log("aaaaaaaaaaaaaa ", rowSelection, fileName);
       const keys = Object.keys(rowSelection);
       let dataExport: Record<string, string>[] = [];
@@ -243,12 +243,24 @@ export default function Home() {
       a.remove();
     } catch (error) {
       console.error("Lỗi khi tải file ZIP:", error);
+    } finally {
+      setTimeout(() => {
+        setLoadingGlobal(false);
+      }, 500);
     }
   };
 
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-center relative py-4">
+        <Image
+          className="absolute left-0"
+          src="/flag-vietnam.png" // Đường dẫn ảnh (public/images/example.jpg)
+          alt="Flag VN"
+          width={48} // Chiều rộng hiển thị
+          height={32} // Chiều cao hiển thị
+          priority // Load ảnh ngay lập tức
+        />
         <Label className="text-4xl">Phần mềm xuất file hàng loạt</Label>
         <div className="absolute cursor-pointer right-0 top-0">
           <TooltipProvider>
