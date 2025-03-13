@@ -189,6 +189,8 @@ export default function Home() {
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
     formData.append("file", blob, fileName);
 
+    console.log("formData === ", formData);
+
     try {
       const response = await fetch("/api/save-excel", {
         method: "POST",

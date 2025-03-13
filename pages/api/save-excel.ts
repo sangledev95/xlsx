@@ -30,6 +30,8 @@ export default async function handler(
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
+  console.log("uploadDir === ", uploadDir);
+
   form.parse(req, (err: Error, fields: Fields, files: Files) => {
     if (err) {
       return res.status(500).json({ message: "Lỗi khi tải file lên" });
